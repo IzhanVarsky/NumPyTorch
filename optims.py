@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 
 constant_lr = lambda lr0: (lambda _: lr0)
@@ -7,14 +9,21 @@ expo1_lr = lambda lr0, k: (lambda t: lr0 / (k ** t))
 
 
 class AbstractOptimizer:
-    def __init__(self, optim_params, lr, scheduler=constant_lr, start_iter=0):
+    def __init__(self, optim_params, lr, scheduler=constant_lr, start_iter=0, maximize=False):
         self.optim_params = optim_params
         self.iter = start_iter
+        self.scheduler_iter = 0
         self.lr = scheduler(lr)
+        self.maximize = maximize
 
     def step(self):
         for ind, param in enumerate(self.optim_params):
-            param.value -= self.get_grad_step(ind, param.grad)
+            step = self.get_grad_step(ind, param.grad)
+            if self.maximize:
+                param.value += step
+            else:
+                param.value -= step
+        self.iter += 1
 
     def get_grad_step(self, ind, grad):
         pass
@@ -24,7 +33,7 @@ class AbstractOptimizer:
             param.grad *= 0
 
     def scheduler_step(self):
-        self.iter += 1
+        self.scheduler_iter += 1
 
 
 class SGD(AbstractOptimizer):
@@ -32,7 +41,7 @@ class SGD(AbstractOptimizer):
         super().__init__(optim_params, lr, scheduler)
 
     def get_grad_step(self, ind, grad):
-        return self.lr(self.iter) * grad
+        return self.lr(self.scheduler_iter) * grad
 
 
 class Momentum(AbstractOptimizer):
@@ -46,12 +55,12 @@ class Momentum(AbstractOptimizer):
         # return self.step2(ind, grad)
 
     def step1(self, ind, grad):
-        self.last_grad[ind] = self.alpha * self.last_grad[ind] + self.lr(self.iter) * grad
+        self.last_grad[ind] = self.alpha * self.last_grad[ind] + self.lr(self.scheduler_iter) * grad
         return self.last_grad[ind]
 
     def step2(self, ind, grad):
         self.last_grad[ind] = self.alpha * self.last_grad[ind] + (1 - self.alpha) * grad
-        return self.lr(self.iter) * self.last_grad[ind]
+        return self.lr(self.scheduler_iter) * self.last_grad[ind]
 
 
 class Nesterov(AbstractOptimizer):
@@ -63,7 +72,7 @@ class Nesterov(AbstractOptimizer):
     def get_grad_step(self, ind, grad):
         momentum = self.alpha * self.last_grad[ind]
         # TODO: How to do??
-        # self.last_grad[ind] = momentum + self.lr(iter) * calc_grad(theta - momentum)
+        # self.last_grad[ind] = momentum + self.lr(self.scheduler_iter) * calc_grad(theta - momentum)
         return self.last_grad[ind]
 
 
@@ -75,7 +84,7 @@ class Adagrad(AbstractOptimizer):
 
     def get_grad_step(self, ind, grad):
         self.v[ind] = self.v[ind] + grad ** 2
-        return self.lr(self.iter) / ((self.v[ind] + self.eps) ** 0.5) * grad
+        return self.lr(self.scheduler_iter) / ((self.v[ind] + self.eps) ** 0.5) * grad
 
 
 class RMSProp(AbstractOptimizer):
@@ -87,22 +96,47 @@ class RMSProp(AbstractOptimizer):
 
     def get_grad_step(self, ind, grad):
         self.v[ind] = self.alpha * self.v[ind] + (1 - self.alpha) * (grad ** 2)
-        return self.lr(self.iter) / ((self.v[ind] + self.eps) ** 0.5) * grad
+        return self.lr(self.scheduler_iter) / ((self.v[ind] + self.eps) ** 0.5) * grad
 
 
 class Adam(AbstractOptimizer):
-    def __init__(self, optim_params, lr, alpha1=0.9, alpha2=0.999, scheduler=constant_lr):
+    def __init__(self, optim_params, lr, beta1=0.9, beta2=0.999, scheduler=constant_lr):
         super().__init__(optim_params, lr, scheduler)
-        self.alpha1 = alpha1
-        self.alpha2 = alpha2
-        self.last_grad = np.zeros_like(optim_params)
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.m = np.zeros_like(optim_params)
         self.v = np.zeros_like(optim_params)
         self.eps = 1e-8
 
     def get_grad_step(self, ind, grad):
         iter = self.iter
-        self.last_grad[ind] = self.alpha1 * self.last_grad[ind] + (1 - self.alpha1) * grad
-        self.v[ind] = self.alpha2 * self.v[ind] + (1 - self.alpha2) * (grad ** 2)
-        last_grad_norm = self.last_grad[ind] / (1 - self.alpha1 ** (iter + 1))
-        v_norm = self.v[ind] / (1 - self.alpha2 ** (iter + 1))
-        return self.lr(iter) / ((v_norm + self.eps) ** 0.5) * last_grad_norm
+        self.m[ind] = self.beta1 * self.m[ind] + (1 - self.beta1) * grad
+        self.v[ind] = self.beta2 * self.v[ind] + (1 - self.beta2) * (grad ** 2)
+        m_norm = self.m[ind] / (1 - self.beta1 ** (iter + 1))
+        v_norm = self.v[ind] / (1 - self.beta2 ** (iter + 1))
+        return self.lr(self.scheduler_iter) / ((v_norm + self.eps) ** 0.5) * m_norm
+
+
+class RAdam(AbstractOptimizer):
+    def __init__(self, optim_params, lr, beta1=0.9, beta2=0.999, scheduler=constant_lr):
+        super().__init__(optim_params, lr, scheduler)
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.m = np.zeros_like(optim_params)
+        self.v = np.zeros_like(optim_params)
+        self.p_inf = 2 / (1 - beta2) - 1
+        self.eps = 1e-8
+
+    def get_grad_step(self, ind, grad):
+        iter = self.iter
+        self.m[ind] = self.beta1 * self.m[ind] + (1 - self.beta1) * grad
+        self.v[ind] = self.beta2 * self.v[ind] + (1 - self.beta2) * (grad ** 2)
+        m_norm = self.m[ind] / (1 - self.beta1 ** (iter + 1))
+        beta_pow_t = self.beta2 ** (iter + 1)
+        p = self.p_inf - 2 * iter * beta_pow_t / (1 - beta_pow_t)
+        c = 1
+        if p > 5:
+            el = np.sqrt((1 - beta_pow_t) / (self.v[ind] + self.eps))
+            r = np.sqrt((p - 4) * (p - 2) * self.p_inf / (self.p_inf - 4) / (self.p_inf - 2) / p)
+            c = r * el
+        return self.lr(self.scheduler_iter) * m_norm * c
