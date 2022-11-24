@@ -6,7 +6,7 @@ from tqdm import tqdm
 from activations import ReLU, Tanh, Softmax, Sigmoid
 from conv import Conv2d
 from modules import Module, Linear, CrossEntropy, Flatten
-from optims import Adam, SGD, RMSProp, Adagrad
+from optims import Adam, SGD, RMSProp, Adagrad, RAdam
 
 
 class MyNet(Module):
@@ -35,7 +35,8 @@ class MyNet(Module):
 
 
 def train(model, lr, nb_epoch, loaders):
-    optimizer = Adam(model.parameters(), lr=lr)
+    # optimizer = Adam(model.parameters(), lr=lr)
+    optimizer = RAdam(model.parameters(), lr=lr)
     # optimizer = RMSProp(model.parameters(), lr=lr, alpha=0.9)
     # optimizer = Adagrad(model.parameters(), lr=lr)
 
@@ -85,10 +86,10 @@ def main():
     out_chan = 2
     stride = 1
     net = MyNet([
-        Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
+        # Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
         Flatten(),
-        Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 64),
-        # Linear(28 ** 2, 64),
+        # Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 64),
+        Linear(28 ** 2, 64),
         Tanh(),
         Linear(64, 10),
         Softmax()

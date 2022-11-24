@@ -9,9 +9,9 @@ expo1_lr = lambda lr0, k: (lambda t: lr0 / (k ** t))
 
 
 class AbstractOptimizer:
-    def __init__(self, optim_params, lr, scheduler=constant_lr, start_iter=0, maximize=False):
+    def __init__(self, optim_params, lr, scheduler=constant_lr, maximize=False):
         self.optim_params = optim_params
-        self.iter = start_iter
+        self.iter = 1
         self.scheduler_iter = 0
         self.lr = scheduler(lr)
         self.maximize = maximize
@@ -109,11 +109,10 @@ class Adam(AbstractOptimizer):
         self.eps = 1e-8
 
     def get_grad_step(self, ind, grad):
-        iter = self.iter
         self.m[ind] = self.beta1 * self.m[ind] + (1 - self.beta1) * grad
         self.v[ind] = self.beta2 * self.v[ind] + (1 - self.beta2) * (grad ** 2)
-        m_norm = self.m[ind] / (1 - self.beta1 ** (iter + 1))
-        v_norm = self.v[ind] / (1 - self.beta2 ** (iter + 1))
+        m_norm = self.m[ind] / (1 - self.beta1 ** self.iter)
+        v_norm = self.v[ind] / (1 - self.beta2 ** self.iter)
         return self.lr(self.scheduler_iter) / ((v_norm + self.eps) ** 0.5) * m_norm
 
 
@@ -128,12 +127,11 @@ class RAdam(AbstractOptimizer):
         self.eps = 1e-8
 
     def get_grad_step(self, ind, grad):
-        iter = self.iter
         self.m[ind] = self.beta1 * self.m[ind] + (1 - self.beta1) * grad
         self.v[ind] = self.beta2 * self.v[ind] + (1 - self.beta2) * (grad ** 2)
-        m_norm = self.m[ind] / (1 - self.beta1 ** (iter + 1))
-        beta_pow_t = self.beta2 ** (iter + 1)
-        p = self.p_inf - 2 * iter * beta_pow_t / (1 - beta_pow_t)
+        m_norm = self.m[ind] / (1 - self.beta1 ** self.iter)
+        beta_pow_t = self.beta2 ** self.iter
+        p = self.p_inf - 2 * self.iter * beta_pow_t / (1 - beta_pow_t)
         c = 1
         if p > 5:
             el = np.sqrt((1 - beta_pow_t) / (self.v[ind] + self.eps))

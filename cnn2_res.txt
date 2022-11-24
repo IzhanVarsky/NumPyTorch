@@ -30,7 +30,7 @@ ker = 3
 pad = 1
 out_chan = 2
 stride = 1
-net = LinearNet([
+net = MyNet([
     Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
     Flatten(),
     Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 64),

@@ -1,3 +1,14 @@
+# MY IGNORED:
+.idea
+check.py
+check2.py
+check3.py
+conv2.py
+convolutions1.py
+mnist.py
+test_bwd.txt
+*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
