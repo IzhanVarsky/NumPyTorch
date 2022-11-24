@@ -1,0 +1,54 @@
+F:\1_sem\conv_net_python\win_venv\Scripts\python.exe F:\1_sem\conv_net_python\main.py
+Start training...
+--- Epoch 1/10
+100%|██████████| 937/937 [09:14<00:00,  1.69it/s]
+Phase Train. Loss: 0.94576520825972. Accuracy: 0.6892009071504802
+100%|██████████| 156/156 [00:23<00:00,  6.53it/s]
+Phase Test. Loss: 0.7488099846662154. Accuracy: 0.7605168269230769
+--- Epoch 2/10
+100%|██████████| 937/937 [09:08<00:00,  1.71it/s]
+Phase Train. Loss: 0.7251181851512565. Accuracy: 0.7658918089647813
+100%|██████████| 156/156 [00:23<00:00,  6.56it/s]
+Phase Test. Loss: 0.668427084415329. Accuracy: 0.7914663461538461
+--- Epoch 3/10
+100%|██████████| 937/937 [09:19<00:00,  1.67it/s]
+  0%|          | 0/156 [00:00<?, ?it/s]Phase Train. Loss: 0.6634788907806171. Accuracy: 0.7878535218783351
+100%|██████████| 156/156 [00:24<00:00,  6.34it/s]
+  0%|          | 0/937 [00:00<?, ?it/s]Phase Test. Loss: 0.6214869817465275. Accuracy: 0.8091947115384616
+--- Epoch 4/10
+100%|██████████| 937/937 [09:19<00:00,  1.67it/s]
+  0%|          | 0/156 [00:00<?, ?it/s]Phase Train. Loss: 0.6223646420740747. Accuracy: 0.8017109124866596
+100%|██████████| 156/156 [00:24<00:00,  6.50it/s]
+  0%|          | 0/937 [00:00<?, ?it/s]Phase Test. Loss: 0.5875833318907124. Accuracy: 0.8183092948717948
+--- Epoch 5/10
+  1%|          | 6/937 [00:03<10:13,  1.52it/s]
+Traceback (most recent call last):
+  File "F:\1_sem\conv_net_python\main.py", line 100, in <module>
+    main()
+  File "F:\1_sem\conv_net_python\main.py", line 96, in main
+    train(net, lr=0.001, nb_epoch=10, loaders=loaders)
+  File "F:\1_sem\conv_net_python\main.py", line 58, in train
+    model.backward()
+  File "F:\1_sem\conv_net_python\main.py", line 28, in backward
+    grad = self.layers[i].backward(grad)
+  File "F:\1_sem\conv_net_python\conv.py", line 110, in backward
+    else:
+KeyboardInterrupt
+
+Process finished with exit code -1073741510 (0xC000013A: interrupted by Ctrl+C)
+
+ker = 5
+pad = 2
+out_chan = 4
+stride = 10
+net = LinearNet([
+    Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
+    Flatten(),
+    Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 64),
+    Tanh(),
+    Linear(64, 10),
+    Softmax()
+], CrossEntropy())
+loaders = load_minibatches()
+train(net, lr=0.001, nb_epoch=10, loaders=loaders)
+optimizer = Adam(model.parameters(), lr=lr)

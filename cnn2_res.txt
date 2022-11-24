@@ -1,0 +1,41 @@
+Start training...
+--- Epoch 1/10
+100%|██████████| 937/937 [3:27:29<00:00, 13.29s/it]
+  0%|          | 0/156 [00:00<?, ?it/s]Phase Train. Loss: 0.263772835984491. Accuracy: 0.9243096318036286
+100%|██████████| 156/156 [06:02<00:00,  2.32s/it]
+Phase Test. Loss: 0.18490552535779037. Accuracy: 0.9460136217948718
+--- Epoch 2/10
+100%|██████████| 937/937 [3:25:15<00:00, 13.14s/it]
+  0%|          | 0/156 [00:00<?, ?it/s]Phase Train. Loss: 0.16622462051235473. Accuracy: 0.9526080576307364
+100%|██████████| 156/156 [05:56<00:00,  2.29s/it]
+Phase Test. Loss: 0.15581202088818563. Accuracy: 0.952323717948718
+--- Epoch 3/10
+ 54%|█████▍    | 509/937 [1:51:15<1:33:33, 13.11s/it]
+Traceback (most recent call last):
+  File "F:\1_sem\conv_net_python\main.py", line 100, in <module>
+    main()
+  File "F:\1_sem\conv_net_python\main.py", line 96, in main
+    train(net, lr=0.001, nb_epoch=10, loaders=loaders)
+  File "F:\1_sem\conv_net_python\main.py", line 58, in train
+    model.backward()
+  File "F:\1_sem\conv_net_python\main.py", line 28, in backward
+    grad = self.layers[i].backward(grad)
+  File "F:\1_sem\conv_net_python\conv.py", line 107, in backward
+    if 0 <= a < h_ker and 0 <= b < w_ker:
+KeyboardInterrupt
+
+Process finished with exit code -1073741510 (0xC000013A: interrupted by Ctrl+C)
+
+ker = 3
+pad = 1
+out_chan = 2
+stride = 1
+net = LinearNet([
+    Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
+    Flatten(),
+    Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 64),
+    Tanh(),
+    Linear(64, 10),
+    Softmax()
+], CrossEntropy())
+optimizer = Adam(model.parameters(), lr=lr)

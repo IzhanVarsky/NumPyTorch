@@ -1,0 +1,44 @@
+F:\1_sem\conv_net_python\win_venv\Scripts\python.exe F:\1_sem\conv_net_python\main.py
+Start training...
+--- Epoch 1/10
+100%|██████████| 937/937 [00:16<00:00, 57.19it/s]
+Phase Train. Loss: 0.2971836156789284. Accuracy: 0.9150213447171825
+100%|██████████| 156/156 [00:00<00:00, 1792.77it/s]
+Phase Test. Loss: 0.20121998333357993. Accuracy: 0.9435096153846154
+--- Epoch 2/10
+100%|██████████| 937/937 [00:15<00:00, 60.98it/s]
+Phase Train. Loss: 0.17753567472143775. Accuracy: 0.9500900480256137
+100%|██████████| 156/156 [00:00<00:00, 1813.31it/s]
+  0%|          | 0/937 [00:00<?, ?it/s]Phase Test. Loss: 0.16769381267858427. Accuracy: 0.9524238782051282
+--- Epoch 3/10
+100%|██████████| 937/937 [00:15<00:00, 60.09it/s]
+  0%|          | 0/156 [00:00<?, ?it/s]Phase Train. Loss: 0.1455733008370221. Accuracy: 0.958677961579509
+100%|██████████| 156/156 [00:00<00:00, 1926.62it/s]
+  0%|          | 0/937 [00:00<?, ?it/s]Phase Test. Loss: 0.14972638371056496. Accuracy: 0.9571314102564102
+--- Epoch 4/10
+ 32%|███▏      | 299/937 [00:04<00:10, 61.04it/s]
+Traceback (most recent call last):
+  File "F:\1_sem\conv_net_python\main.py", line 101, in <module>
+    main()
+  File "F:\1_sem\conv_net_python\main.py", line 97, in main
+    train(net, lr=0.001, nb_epoch=10, loaders=loaders)
+  File "F:\1_sem\conv_net_python\main.py", line 58, in train
+    model.backward()
+  File "F:\1_sem\conv_net_python\main.py", line 28, in backward
+    grad = self.layers[i].backward(grad)
+  File "F:\1_sem\conv_net_python\modules.py", line 53, in backward
+    self.weights.grad += (np.matmul(self.old_x[:, :, None], grad[:, None, :])).mean(axis=0)
+KeyboardInterrupt
+
+Process finished with exit code -1073741510 (0xC000013A: interrupted by Ctrl+C)
+
+net = LinearNet([
+    Flatten(),
+    Linear(28 ** 2, 64),
+    Tanh(),
+    Linear(64, 10),
+    Softmax()
+], CrossEntropy())
+loaders = load_minibatches()
+train(net, lr=0.001, nb_epoch=10, loaders=loaders)
+optimizer = Adam(model.parameters(), lr=lr)
