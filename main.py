@@ -97,11 +97,11 @@ def main():
     out_chan = 2
     stride = 1
     net = MyNet([
-        Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
-        BatchNorm2d(out_chan),
+        # Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
+        # BatchNorm2d(out_chan),
         Flatten(),
-        Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 128),
-        # Linear(28 ** 2, 128),
+        # Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 128),
+        Linear(28 ** 2, 128),
         # Dropout(),
         BatchNorm1d(128),
         Tanh(),

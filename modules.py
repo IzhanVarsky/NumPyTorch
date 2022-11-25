@@ -103,23 +103,31 @@ class Dropout(Module):
         return x / (1 - self.p)
 
 
-class BatchNorm1d(Module):
-    def __init__(self, num_features, eps=1e-5, momentum=0.1):
-        super(BatchNorm1d, self).__init__()
+def shape_without_one_axis(a, axis=1):
+    axes = np.arange(a.ndim)
+    axes = np.delete(axes, axis)
+    return tuple(axes)
+
+
+class BaseBatchNorm(Module):
+    def __init__(self, used_shape, eps=1e-5, momentum=0.1):
+        super(BaseBatchNorm, self).__init__()
         self.x_norm = None
         self.sqrtvar = None
         self.xmu = None
-        self.gamma = Variable(np.ones(num_features))
-        self.beta = Variable(np.zeros(num_features))
         self.EX = 0
         self.VarX = 1
         self.eps = eps
         self.momentum = momentum
+        self.gamma = Variable(np.ones(used_shape))
+        self.beta = Variable(np.zeros(used_shape))
 
     def forward(self, x):
+        axes = shape_without_one_axis(x)
+
         if self.training:
-            mean = x.mean(axis=0)
-            var = x.var(axis=0)
+            mean = x.mean(axis=axes, keepdims=True)
+            var = x.var(axis=axes, keepdims=True)
             self.EX = self.EX * self.momentum + mean * (1 - self.momentum)
             self.VarX = self.VarX * self.momentum + var * (1 - self.momentum)
         else:
@@ -132,57 +140,26 @@ class BatchNorm1d(Module):
         return self.x_norm * self.gamma.value + self.beta.value
 
     def backward(self, grad):
-        N = grad.shape[0]
-        self.beta.grad += grad.sum(axis=0)
-        self.gamma.grad += (grad * self.x_norm).sum(axis=0)
+        axes = shape_without_one_axis(grad)
+
+        N = np.prod(np.delete(grad.shape, 1))
+        self.beta.grad += grad.sum(axis=axes, keepdims=True)
+        self.gamma.grad += (grad * self.x_norm).sum(axis=axes, keepdims=True)
         dxhat = grad * self.gamma.value
-        divar = (dxhat * self.xmu).sum(axis=0)
-        dx1 = dxhat / self.sqrtvar - \
-              self.xmu / N * np.ones(grad.shape) * divar / (self.sqrtvar ** 3)
-        dx2 = -np.ones(grad.shape) * dx1.sum(axis=0) / N
-        return dx1 + dx2
-
-    def parameters(self):
-        return [self.gamma, self.beta]
-
-
-class BatchNorm2d(Module):
-    def __init__(self, num_features, eps=1e-5, momentum=0.1):
-        super(BatchNorm2d, self).__init__()
-        self.x_norm = None
-        self.sqrtvar = None
-        self.xmu = None
-        self.gamma = Variable(np.ones((1, num_features, 1, 1)))
-        self.beta = Variable(np.zeros((1, num_features, 1, 1)))
-        self.EX = 0
-        self.VarX = 1
-        self.eps = eps
-        self.momentum = momentum
-
-    def forward(self, x):
-        if self.training:
-            mean = x.mean(axis=(0, 2, 3), keepdims=True)
-            var = x.var(axis=(0, 2, 3), keepdims=True)
-            self.EX = self.EX * self.momentum + mean * (1 - self.momentum)
-            self.VarX = self.VarX * self.momentum + var * (1 - self.momentum)
-        else:
-            mean = self.EX
-            var = self.VarX
-
-        self.xmu = x - mean
-        self.sqrtvar = np.sqrt(var + self.eps)
-        self.x_norm = self.xmu / self.sqrtvar
-        return self.x_norm * self.gamma.value + self.beta.value
-
-    def backward(self, grad):
-        N = grad.shape[0] * grad.shape[2] * grad.shape[3]
-        self.beta.grad += grad.sum(axis=(0, 2, 3), keepdims=True)
-        self.gamma.grad += (grad * self.x_norm).sum(axis=(0, 2, 3), keepdims=True)
-        dxhat = grad * self.gamma.value
-        divar = (dxhat * self.xmu).sum(axis=(0, 2, 3), keepdims=True)
+        divar = (dxhat * self.xmu).sum(axis=axes, keepdims=True)
         dx1 = dxhat / self.sqrtvar - self.xmu * divar / (self.sqrtvar ** 3) / N
-        res = dx1 - dx1.sum(axis=(0, 2, 3), keepdims=True) / N
+        res = dx1 - dx1.sum(axis=axes, keepdims=True) / N
         return res
 
     def parameters(self):
         return [self.gamma, self.beta]
+
+
+class BatchNorm1d(BaseBatchNorm):
+    def __init__(self, num_features, eps=1e-5, momentum=0.1):
+        super().__init__((1, num_features), eps, momentum)
+
+
+class BatchNorm2d(BaseBatchNorm):
+    def __init__(self, num_features, eps=1e-5, momentum=0.1):
+        super().__init__((1, num_features, 1, 1), eps, momentum)
