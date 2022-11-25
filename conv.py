@@ -103,6 +103,7 @@ class Conv2d(Module):
                             for i_x_l in range(h_out):
                                 # for i_x_l in range((i1 - h_ker + 1) // h_stride, min(h_out, i1 // h_stride + 1)):
                                 for j_x_l in range(w_out):
+                                    # TODO: Is division to dilation needed?
                                     a = i1 - i_x_l * h_stride
                                     b = j1 - j_x_l * w_stride
                                     if 0 <= a < h_ker and 0 <= b < w_ker:
