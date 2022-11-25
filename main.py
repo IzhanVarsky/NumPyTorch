@@ -5,12 +5,13 @@ from tqdm import tqdm
 
 from activations import ReLU, Tanh, Softmax, Sigmoid
 from conv import Conv2d
-from modules import Module, Linear, CrossEntropy, Flatten
+from modules import Module, Linear, CrossEntropy, Flatten, Dropout
 from optims import Adam, SGD, RMSProp, Adagrad, RAdam
 
 
 class MyNet(Module):
     def __init__(self, layers, cost):
+        super().__init__()
         self.layers = layers
         self.cost = cost
 
@@ -33,6 +34,11 @@ class MyNet(Module):
             res.extend(layer.parameters())
         return res
 
+    def train(self, flag=True):
+        super(MyNet, self).train(flag)
+        for layer in self.layers:
+            layer.train(flag)
+
 
 def train(model, lr, nb_epoch, loaders):
     # optimizer = Adam(model.parameters(), lr=lr)
@@ -45,6 +51,11 @@ def train(model, lr, nb_epoch, loaders):
         print(f"--- Epoch {epoch + 1}/{nb_epoch}")
 
         for phase in ["Train", "Test"]:
+            if phase == "Train":
+                model.train()
+            else:
+                model.eval()
+
             accuracy = 0
             running_loss = 0.0
             num_inputs = 0
@@ -63,7 +74,7 @@ def train(model, lr, nb_epoch, loaders):
             print(f'Phase {phase}. Loss: {running_loss / num_inputs}. Accuracy: {accuracy / num_inputs}')
 
 
-def load_minibatches(batch_size=64):
+def get_loaders(batch_size=64):
     tsfms = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
     train_set = datasets.MNIST('.', train=True, download=True, transform=tsfms)
     test_set = datasets.MNIST('.', train=False, download=True, transform=tsfms)
@@ -89,12 +100,13 @@ def main():
         # Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
         Flatten(),
         # Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 64),
-        Linear(28 ** 2, 64),
+        Linear(28 ** 2, 128),
+        Dropout(),
         Tanh(),
-        Linear(64, 10),
+        Linear(128, 10),
         Softmax()
     ], CrossEntropy())
-    loaders = load_minibatches()
+    loaders = get_loaders()
     train(net, lr=0.001, nb_epoch=10, loaders=loaders)
 
 

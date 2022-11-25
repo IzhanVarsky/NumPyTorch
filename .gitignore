@@ -1,4 +1,6 @@
 # MY IGNORED:
+win_venv
+MNIST
 .idea
 check.py
 check2.py
@@ -8,6 +10,12 @@ convolutions1.py
 mnist.py
 test_bwd.txt
 *.png
+
+image_transforms.py
+inception_train.py
+torch_run.py
+utils.py
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
