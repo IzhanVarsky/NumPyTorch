@@ -1,6 +1,6 @@
 import numpy as np
 
-from modules import Module
+from .module import Module
 
 
 class ReLU(Module):

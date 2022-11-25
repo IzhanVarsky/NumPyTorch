@@ -3,7 +3,8 @@ from itertools import repeat
 
 import numpy as np
 
-from modules import Module, Variable
+from .module import Module
+from .variable import Variable
 
 
 def _ntuple(n):
