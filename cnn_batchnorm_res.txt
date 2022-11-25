@@ -1,0 +1,51 @@
+F:\1_sem\only-numpy-ml-framework\win_venv\Scripts\python.exe F:\1_sem\only-numpy-ml-framework\main.py
+  0%|          | 0/937 [00:00<?, ?it/s]Start training...
+--- Epoch 1/10
+100%|██████████| 937/937 [3:31:33<00:00, 13.55s/it]
+Phase Train. Loss: 0.41208643549431173. Accuracy: 0.8789187566702241
+100%|██████████| 156/156 [06:48<00:00,  2.62s/it]
+  0%|          | 0/937 [00:00<?, ?it/s]Phase Test. Loss: 0.24601800905921076. Accuracy: 0.9289863782051282
+--- Epoch 2/10
+100%|██████████| 937/937 [3:30:34<00:00, 13.48s/it]
+  0%|          | 0/156 [00:00<?, ?it/s]Phase Train. Loss: 0.21894772799182308. Accuracy: 0.9372665421558164
+100%|██████████| 156/156 [06:45<00:00,  2.60s/it]
+Phase Test. Loss: 0.18745301156294816. Accuracy: 0.9433092948717948
+--- Epoch 3/10
+ 59%|█████▉    | 553/937 [2:04:03<1:26:08, 13.46s/it]
+Traceback (most recent call last):
+  File "F:\1_sem\only-numpy-ml-framework\main.py", line 116, in <module>
+    main()
+  File "F:\1_sem\only-numpy-ml-framework\main.py", line 112, in main
+    train(net, lr=0.001, nb_epoch=10, loaders=loaders)
+  File "F:\1_sem\only-numpy-ml-framework\main.py", line 65, in train
+    predicted = model(inputs)
+  File "F:\1_sem\only-numpy-ml-framework\modules.py", line 9, in __call__
+    return self.forward(*args, **kwargs)
+  File "F:\1_sem\only-numpy-ml-framework\main.py", line 20, in forward
+    x = layer(x)
+  File "F:\1_sem\only-numpy-ml-framework\modules.py", line 9, in __call__
+    return self.forward(*args, **kwargs)
+  File "F:\1_sem\only-numpy-ml-framework\conv.py", line 78, in forward
+    self.old_img[b_ind][out_ind][c_ind][a][b][i][j] = img[img_h_pos][img_w_pos]
+KeyboardInterrupt
+
+Process finished with exit code -1073741510 (0xC000013A: interrupted by Ctrl+C)
+
+ker = 3
+pad = 1
+out_chan = 2
+stride = 1
+net = MyNet([
+    Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
+    BatchNorm2d(out_chan),
+    Flatten(),
+    Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 128),
+    # Linear(28 ** 2, 128),
+    # Dropout(),
+    BatchNorm1d(128),
+    Tanh(),
+    Linear(128, 10),
+    Softmax()
+], CrossEntropy())
+loaders = get_loaders()
+train(net, lr=0.001, nb_epoch=10, loaders=loaders)

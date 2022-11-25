@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from activations import ReLU, Tanh, Softmax, Sigmoid
 from conv import Conv2d
-from modules import Module, Linear, CrossEntropy, Flatten, Dropout
+from modules import Module, Linear, CrossEntropy, Flatten, Dropout, BatchNorm1d, BatchNorm2d
 from optims import Adam, SGD, RMSProp, Adagrad, RAdam
 
 
@@ -97,11 +97,13 @@ def main():
     out_chan = 2
     stride = 1
     net = MyNet([
-        # Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
+        Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
+        BatchNorm2d(out_chan),
         Flatten(),
-        # Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 64),
-        Linear(28 ** 2, 128),
-        Dropout(),
+        Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 128),
+        # Linear(28 ** 2, 128),
+        # Dropout(),
+        BatchNorm1d(128),
         Tanh(),
         Linear(128, 10),
         Softmax()
