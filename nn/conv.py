@@ -1,22 +1,7 @@
-import collections
-from itertools import repeat
-
 import numpy as np
-
+from .utils import _pair
 from .module import Module
 from .variable import Variable
-
-
-def _ntuple(n):
-    def parse(x):
-        if isinstance(x, collections.abc.Iterable):
-            return tuple(x)
-        return tuple(repeat(x, n))
-
-    return parse
-
-
-_pair = _ntuple(2)
 
 
 class Conv2d(Module):
@@ -53,12 +38,11 @@ class Conv2d(Module):
         h_dilation, w_dilation = self.dilation
         h_ker, w_ker = self.kernel_size
 
-        h_in = H + 2 * self.padding[0]
-        w_in = W + 2 * self.padding[1]
+        h_in, w_in = x.shape[-2:]
         self.padded_img_shape = (h_in, w_in)
 
-        h_out = (h_in - h_dilation * (self.kernel_size[0] - 1) - 1) // h_stride + 1
-        w_out = (w_in - w_dilation * (self.kernel_size[1] - 1) - 1) // w_stride + 1
+        h_out = (h_in - h_dilation * (h_ker - 1) - 1) // h_stride + 1
+        w_out = (w_in - w_dilation * (w_ker - 1) - 1) // w_stride + 1
 
         self.old_img = np.zeros((bz, self.out_channels, self.in_channels,
                                  h_ker, w_ker, h_out, w_out))

@@ -2,9 +2,7 @@
 win_venv
 MNIST
 .idea
-check.py
-check2.py
-check3.py
+check*.py
 conv2.py
 convolutions1.py
 mnist.py
@@ -14,7 +12,7 @@ test_bwd.txt
 image_transforms.py
 inception_train.py
 torch_run.py
-utils.py
+/utils.py
 
 
 # Byte-compiled / optimized / DLL files

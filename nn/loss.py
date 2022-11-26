@@ -9,16 +9,31 @@ class Loss(Module, ABC):
         raise NotImplementedError()
 
 
-class CrossEntropy(Loss):
+class CrossEntropyLoss(Loss):
     def __init__(self):
-        super(CrossEntropy, self).__init__()
-        self.old_x = None
-        self.old_y = None
+        super(CrossEntropyLoss, self).__init__()
+        self.cached_input = None
+        self.cached_target = None
 
-    def forward(self, x, y):
-        self.old_x = x.clip(min=1e-8, max=None)  # to avoid division by zero
-        self.old_y = y
-        return (np.where(y == 1, -np.log(self.old_x), 0)).sum(axis=1)
+    def forward(self, x, target):
+        self.cached_input = x.clip(min=1e-8, max=None)  # to avoid division by zero
+        self.cached_target = target
+        return -(target * np.log(self.cached_input)).sum(axis=1)
 
     def backward(self):
-        return np.where(self.old_y == 1, -1 / self.old_x, 0)
+        return -self.cached_target / self.cached_input
+
+
+class MSELoss(Loss):
+    def __init__(self):
+        super(MSELoss, self).__init__()
+        self.cached_input = None
+        self.cached_target = None
+
+    def forward(self, x, target):
+        self.cached_input = x
+        self.cached_target = target
+        return ((target - x) ** 2).mean(axis=1)
+
+    def backward(self):
+        return self.cached_input - self.cached_target
