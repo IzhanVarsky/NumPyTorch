@@ -18,7 +18,8 @@ class MaxPool2d(Module):
     def forward(self, x):
         bz, C, H, W = x.shape
         self.old_shape = x.shape
-        pad_shape = ((0, 0), (0, 0), self.padding, self.padding)
+        h_pad, w_pad = self.padding
+        pad_shape = ((0, 0), (0, 0), (h_pad, h_pad), (w_pad, w_pad))
         x = np.pad(x, pad_shape, constant_values=-np.inf)
 
         h_stride, w_stride = self.stride
@@ -44,8 +45,8 @@ class MaxPool2d(Module):
                         img_filtered = img[h_positions.reshape(-1, 1), w_positions]
                         M = img_filtered.argmax()
                         h1, w1 = M // w_ker, M % w_ker
-                        i_back = h_positions[h1] - self.padding[0]
-                        j_back = w_positions[w1] - self.padding[1]
+                        i_back = h_positions[h1] - h_pad
+                        j_back = w_positions[w1] - w_pad
                         res[b_ind][c_ind][i][j] = img_filtered[h1][w1]
                         key = (i_back, j_back)
                         back = [i, j]

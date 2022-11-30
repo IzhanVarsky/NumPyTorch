@@ -9,11 +9,15 @@ mnist.py
 test_bwd.txt
 *.png
 
+main2.py
+regression_loader.py
+
 image_transforms.py
 inception_train.py
 torch_run.py
 /utils.py
 
+test_conv1.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

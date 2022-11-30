@@ -40,25 +40,27 @@ def train(model, lr, nb_epoch, loaders):
 
 
 def main():
-    ker = 7
-    pad = 2
-    out_chan = 2
+    ker = 3
+    pad = 1
+    out_chan = 4
     stride = 1
     net = nn.Net(nn.Sequential(
         # nn.Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
+        nn.FastConv2d(in_channels=1, out_channels=out_chan * 4, kernel_size=ker, padding=pad, stride=stride),
+        # nn.FastConv2d(in_channels=out_chan * 4, out_channels=out_chan * 16, kernel_size=ker, padding=pad, stride=stride),
         # nn.MaxPool2d(kernel_size=ker, padding=pad, stride=stride),
         # nn.BatchNorm2d(out_chan),
         nn.Flatten(),
-        # nn.Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan, 128),
+        nn.Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan * 4, 128),
         # nn.Linear(((28 + 2 * pad - ker) // stride + 1) ** 2, 128),
-        nn.Linear(28 ** 2, 128),
+        # nn.Linear(28 ** 2, 128),
         # nn.Dropout(),
         nn.BatchNorm1d(128),
         nn.Tanh(),
         nn.Linear(128, 10),
         # nn.Softmax()
     ), nn.MSELoss())
-    loaders = get_mnist_loaders()
+    loaders = get_mnist_loaders(batch_size=32)
     train(net, lr=0.001, nb_epoch=10, loaders=loaders)
 
 

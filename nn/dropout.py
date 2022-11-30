@@ -7,7 +7,7 @@ class Dropout(Module):
     def __init__(self, p=0.5):
         super(Dropout, self).__init__()
         if p < 0 or p > 1:
-            raise ValueError(f"Dropout probability has to in range [0, 1], but got {p}")
+            raise ValueError(f"Dropout probability has to be in range [0, 1], but got {p}")
         self.p = p  # probability of an element to be zeroed
         self.old_mask = None
 
