@@ -64,11 +64,11 @@ class TestConv(unittest.TestCase):
         print("++++ Selected patches test passed!")
 
     def test_rand_conv(self):
-        ker = (3, 1)
+        ker = (5, 4)
         stride = (3, 2)
-        padding = (2, 4)
-        dilation = (1, 2)
-        bz, in_channels, H, W = input_shape = (4, 3, 16, 16)
+        padding = (2, 1)
+        dilation = (2, 4)
+        bz, in_channels, H, W = input_shape = (6, 3, 28, 28)
         input = np.random.random(input_shape)
         out_channels = 9
 

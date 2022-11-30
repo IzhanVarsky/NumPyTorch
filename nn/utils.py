@@ -22,7 +22,7 @@ def pad_img(x, padding, pad_value=0):
     return np.pad(x, pad_shape, constant_values=pad_value)
 
 
-def get_all_selected_patches(padded_img, ker, stride, dilation, return_i_j_k=False):
+def get_all_selected_patches(padded_img, ker, stride, dilation, return_i_j=False):
     h_ker, w_ker = ker
     h_stride, w_stride = stride
     h_dilation, w_dilation = dilation
@@ -41,8 +41,8 @@ def get_all_selected_patches(padded_img, ker, stride, dilation, return_i_j_k=Fal
     j = all_ws + w_shifts
     select_img = padded_img[:, :, i, j]
     res = select_img.reshape(bz, img_c, out_cnt, h_ker, w_ker)
-    if return_i_j_k:
-        return res, i, j, np.repeat(np.arange(img_c), h_ker * w_ker)
+    if return_i_j:
+        return res, i, j
     return res
 
 

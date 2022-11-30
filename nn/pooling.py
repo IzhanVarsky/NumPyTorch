@@ -52,15 +52,16 @@ class MaxPool2d(Module):
         bz, in_c, out_h, out_w = self.padded_shape
         total_res = np.zeros(self.padded_shape, dtype=np.float32)
         out_kernels_cnt = self.i_maxes.shape[-1]
-        np.add.at(total_res, (np.repeat(np.arange(bz), in_c * out_kernels_cnt).reshape(bz, in_c, out_kernels_cnt),
-                              np.tile(np.repeat(np.arange(in_c), out_kernels_cnt),
-                                      bz).reshape(bz, in_c, out_kernels_cnt),
-                              self.i_maxes,
-                              self.j_maxes),
-                  grad.reshape(bz, in_c, -1))
+        np.add.at(total_res, (
+            np.repeat(np.arange(bz), in_c * out_kernels_cnt).reshape(bz, in_c, out_kernels_cnt),
+            np.tile(np.repeat(np.arange(in_c), out_kernels_cnt), bz).reshape(bz, in_c, out_kernels_cnt),
+            self.i_maxes,
+            self.j_maxes
+        ), grad.reshape(bz, in_c, -1))
         return total_res[:, :, h_pad:out_h - h_pad, w_pad:out_w - w_pad]
 
 
+# Slow version for educational purposes:
 class SlowMaxPool2d(Module):
     def __init__(self, kernel_size, stride=1, padding=0, dilation=1):
         super().__init__()
