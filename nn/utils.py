@@ -16,6 +16,12 @@ def _ntuple(n):
 _pair = _ntuple(2)
 
 
+def pad_img(x, padding, pad_value=0):
+    h_pad, w_pad = padding
+    pad_shape = ((0, 0), (0, 0), (h_pad, h_pad), (w_pad, w_pad))
+    return np.pad(x, pad_shape, constant_values=pad_value)
+
+
 def get_all_selected_patches(padded_img, ker, stride, dilation, return_i_j_k=False):
     h_ker, w_ker = ker
     h_stride, w_stride = stride

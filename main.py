@@ -58,8 +58,8 @@ def main():
         nn.BatchNorm1d(128),
         nn.Tanh(),
         nn.Linear(128, 10),
-        # nn.Softmax()
-    ), nn.MSELoss())
+        nn.Softmax()
+    ), nn.CrossEntropyLoss())
     loaders = get_mnist_loaders(batch_size=32)
     train(net, lr=0.001, nb_epoch=10, loaders=loaders)
 
