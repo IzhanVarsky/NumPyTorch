@@ -63,7 +63,7 @@ class TestConv(unittest.TestCase):
                                       err_msg="---- Selected patches test failed :(")
         print("++++ Selected patches test passed!")
 
-    def test_rand_conv_forward(self):
+    def test_rand_conv(self):
         ker = (3, 1)
         stride = (3, 2)
         padding = (2, 4)

@@ -31,7 +31,7 @@ class MaxPool2d(Module):
         w_out = (w_in - w_dilation * (w_ker - 1) - 1) // w_stride + 1
 
         res = np.full((bz, C, h_out, w_out), -np.inf, dtype=np.float32)
-        self.cached_indices = np.empty((bz, C, h_out, w_out, 2), dtype=np.int)
+        self.cached_indices = np.empty((bz, C, h_out, w_out, 2), dtype=np.int32)
         self.anti_cached = np.empty((bz, C), dtype=dict)
         self.anti_cached_old = {}
         for b_ind in range(bz):
