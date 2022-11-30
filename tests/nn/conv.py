@@ -59,32 +59,47 @@ class TestConv(unittest.TestCase):
                                     [56, 57, 58, 59],
                                     [68, 69, 70, 71]]]]])
 
-        np.testing.assert_array_equal(res, ground_truth, err_msg="---- Test failed :(")
-        print("++++ Test Passed!")
+        np.testing.assert_array_equal(res, ground_truth,
+                                      err_msg="---- Selected patches test failed :(")
+        print("++++ Selected patches test passed!")
 
     def test_rand_conv_forward(self):
-        ker = (3, 4)
-        stride = (2, 5)
-        padding = (3, 1)
-        dilation = (4, 6)
-        bz, in_channels, H, W = input_shape = (5, 3, 32, 32)
-        input = np.random.random(input_shape) * 100
-        out_channels = 7
+        ker = (3, 1)
+        stride = (3, 2)
+        padding = (2, 4)
+        dilation = (1, 2)
+        bz, in_channels, H, W = input_shape = (4, 3, 16, 16)
+        input = np.random.random(input_shape)
+        out_channels = 9
 
         numpy_dtype = np.float32
-        my_conv1 = nn.FastConv2d(in_channels, out_channels,
-                                 kernel_size=ker, stride=stride, padding=padding,
-                                 dilation=dilation, dtype=numpy_dtype)
-        my_out = my_conv1(input)
-
         torch_dtype = torch.float32
-        t_conv = torch.nn.Conv2d(in_channels, out_channels,
-                                 kernel_size=ker, stride=stride, padding=padding,
-                                 dilation=dilation, dtype=torch_dtype)
-        t_conv.bias.data = torch.tensor(my_conv1.bias.data)
-        t_conv.weight.data = torch.tensor(my_conv1.weight.data)
-        t_out = t_conv(torch.tensor(input, dtype=torch_dtype))
+        my_layer = nn.Conv2d(in_channels, out_channels,
+                             kernel_size=ker, stride=stride, padding=padding,
+                             dilation=dilation, dtype=numpy_dtype)
+        torch_layer = torch.nn.Conv2d(in_channels, out_channels,
+                                      kernel_size=ker, stride=stride, padding=padding,
+                                      dilation=dilation, dtype=torch_dtype)
+        my_layer.bias.data = torch_layer.bias.data.numpy()
+        my_layer.weight.data = torch_layer.weight.data.numpy()
 
-        t_out_n = t_out.detach().numpy()
-        assert_allclose(my_out, t_out_n, atol=0.0001, err_msg="---- Test failed :(")
-        print("++++ Test Passed!")
+        my_out = my_layer(input)
+        grad = np.random.random((bz, out_channels, *my_out.shape[-2:]))
+        my_grad_out = my_layer.backward(grad)
+
+        t_input = torch.tensor(input, dtype=torch_dtype, requires_grad=True)
+        t_out = torch_layer(t_input)
+        t_out.backward(torch.tensor(grad), retain_graph=True)
+
+        assert_allclose(my_out, t_out.detach().numpy(), atol=0.001,
+                        err_msg="---- Forward: test failed :(")
+        print("++++ Forward: test passed!")
+        assert_allclose(my_layer.bias.grad, torch_layer.bias.grad.numpy(),
+                        atol=0.001, err_msg="---- Backward: bias grad test failed :(")
+        print("++++ Backward: bias grad test passed!")
+        assert_allclose(my_layer.weight.grad.astype(numpy_dtype), torch_layer.weight.grad.numpy(),
+                        atol=0.001, err_msg="---- Backward: weights grad test failed :(")
+        print("++++ Backward: weights grad test passed!")
+        assert_allclose(my_grad_out, t_input.grad.numpy(),
+                        atol=0.001, err_msg="---- Backward: input grad test failed :(")
+        print("++++ Backward: input grad test passed!")

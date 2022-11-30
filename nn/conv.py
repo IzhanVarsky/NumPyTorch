@@ -24,9 +24,9 @@ class Conv2d(Module):
         self.dilation = _pair(dilation)
 
         # in TORCH: OUT x IN x H * W
-        self.weights = Variable(np.random.random((out_channels, in_channels,
-                                                  self.kernel_size[0], self.kernel_size[1])).astype(dtype) * 0.1)
-        self.biases = Variable(np.random.random(out_channels).astype(dtype) * 0.01)
+        self.weight = Variable(np.random.random((out_channels, in_channels,
+                                                 self.kernel_size[0], self.kernel_size[1])) * 0.1, dtype)
+        self.bias = Variable(np.random.random(out_channels) * 0.01, dtype)
         self.old_img = None
         self.padded_img_shape = None
 
@@ -53,7 +53,7 @@ class Conv2d(Module):
         for b_ind in range(bz):
             for out_ind in range(self.out_channels):
                 for c_ind in range(C):
-                    ker = self.weights.data[out_ind][c_ind]
+                    ker = self.weight.data[out_ind][c_ind]
                     img = x[b_ind][c_ind]
                     for i in range(h_out):
                         for j in range(w_out):
@@ -63,7 +63,7 @@ class Conv2d(Module):
                                     img_w_pos = j * w_stride + b * w_dilation
                                     mega_res[b_ind][out_ind][i][j] += img[img_h_pos][img_w_pos] * ker[a][b]
                                     self.old_img[b_ind][out_ind][c_ind][a][b][i][j] = img[img_h_pos][img_w_pos]
-                mega_res[b_ind][out_ind] += self.biases.data[out_ind]
+                mega_res[b_ind][out_ind] += self.bias.data[out_ind]
         return mega_res
 
     def backward(self, grad):
@@ -71,36 +71,34 @@ class Conv2d(Module):
         h_stride, w_stride = self.stride
         h_pad, w_pad = self.padding
         h_ker, w_ker = self.kernel_size
+        h_dilation, w_dilation = self.dilation
 
-        self.biases.grad += grad.mean(axis=0).sum(axis=(-2, -1))
+        self.bias.grad += grad.sum(axis=(0, -2, -1))
         # self.old_img[b_ind][out_ind][c_ind][h_ker][w_ker][h_out][w_out]
         # grad[b_ind][out_ind][h_out][w_out]
         # self.select_img[bz, in_c, h_out, w_out, h_ker * w_ker]
-        self.weights.grad = (grad[:, :, None, None, None, :, :] * self.old_img).sum(axis=(0, -2, -1)) / bz
-
+        self.weight.grad = (grad[:, :, None, None, None, :, :] * self.old_img).sum(axis=(0, -2, -1))
+        img_pad_h, img_pad_w = self.padded_img_shape
         total_res = np.zeros((bz, self.in_channels,
-                              self.padded_img_shape[0] - 2 * h_pad,
-                              self.padded_img_shape[1] - 2 * w_pad), dtype=np.float32)
+                              img_pad_h,
+                              img_pad_w), dtype=np.float32)
         for b_ind in range(bz):
-            for j in range(self.out_channels):
-                cur_grad = grad[b_ind][j]
+            for out_ind in range(self.out_channels):
+                cur_grad = grad[b_ind][out_ind]
                 h_out, w_out = cur_grad.shape
-                for i in range(self.in_channels):
-                    for i1 in range(h_pad, self.padded_img_shape[0] - h_pad):
-                        for j1 in range(w_pad, self.padded_img_shape[1] - w_pad):
-                            for i_x_l in range(h_out):
-                                # for i_x_l in range((i1 - h_ker + 1) // h_stride, min(h_out, i1 // h_stride + 1)):
-                                for j_x_l in range(w_out):
-                                    # TODO: Is division to dilation needed?
-                                    a = i1 - i_x_l * h_stride
-                                    b = j1 - j_x_l * w_stride
-                                    if 0 <= a < h_ker and 0 <= b < w_ker:
-                                        total_res[b_ind][i][i1 - h_pad][j1 - w_pad] += cur_grad[i_x_l][j_x_l] * \
-                                                                                       self.weights.data[j][i][a][b]
-        return total_res
+                for c_ind in range(self.in_channels):
+                    for i in range(h_out):
+                        for j in range(w_out):
+                            for a in range(h_ker):
+                                for b in range(w_ker):
+                                    i_old = i * h_stride + a * h_dilation
+                                    j_old = j * w_stride + b * w_dilation
+                                    total_res[b_ind][c_ind][i_old][j_old] += \
+                                        cur_grad[i][j] * self.weight.data[out_ind][c_ind][a][b]
+        return total_res[:, :, h_pad:img_pad_h - h_pad, w_pad:img_pad_w - w_pad]
 
     def parameters(self):
-        return [self.weights, self.biases]
+        return [self.weight, self.bias]
 
 
 class FastConv2d(Module):
@@ -123,8 +121,8 @@ class FastConv2d(Module):
         self.dilation = _pair(dilation)
 
         # in TORCH: OUT x IN x H * W
-        self.weight = Variable(np.random.random((out_channels, in_channels, *self.kernel_size)).astype(dtype) * 0.1)
-        self.bias = Variable(np.random.random(out_channels).astype(dtype) * 0.01)
+        self.weight = Variable(np.random.random((out_channels, in_channels, *self.kernel_size)) * 0.1, dtype)
+        self.bias = Variable(np.random.random(out_channels) * 0.01, dtype)
 
     def forward(self, x):
         h_pad, w_pad = self.padding
@@ -151,12 +149,12 @@ class FastConv2d(Module):
         h_pad, w_pad = self.padding
         h_ker, w_ker = self.kernel_size
 
-        self.bias.grad += grad.mean(axis=0).sum(axis=(-2, -1))
+        self.bias.grad += grad.sum(axis=(0, -2, -1))
 
         in_c, out_h, out_w = self.padded_img_shape
 
         dw = grad[:, :, None, :, :, None, None] * self.select_img.reshape(bz, 1, in_c, H, W, h_ker, w_ker)
-        self.weight.grad = dw.sum(axis=(0, 3, 4)) / bz
+        self.weight.grad += dw.sum(axis=(0, 3, 4))
 
         X = grad[:, :, None, :, :, None, None] * self.weight.data.reshape(1, self.out_channels, in_c,
                                                                           1, 1, h_ker, w_ker)
