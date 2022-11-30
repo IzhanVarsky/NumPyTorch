@@ -53,7 +53,7 @@ class Conv2d(Module):
         for b_ind in range(bz):
             for out_ind in range(self.out_channels):
                 for c_ind in range(C):
-                    ker = self.weights.value[out_ind][c_ind]
+                    ker = self.weights.data[out_ind][c_ind]
                     img = x[b_ind][c_ind]
                     for i in range(h_out):
                         for j in range(w_out):
@@ -63,7 +63,7 @@ class Conv2d(Module):
                                     img_w_pos = j * w_stride + b * w_dilation
                                     mega_res[b_ind][out_ind][i][j] += img[img_h_pos][img_w_pos] * ker[a][b]
                                     self.old_img[b_ind][out_ind][c_ind][a][b][i][j] = img[img_h_pos][img_w_pos]
-                mega_res[b_ind][out_ind] += self.biases.value[out_ind]
+                mega_res[b_ind][out_ind] += self.biases.data[out_ind]
         return mega_res
 
     def backward(self, grad):
@@ -96,7 +96,7 @@ class Conv2d(Module):
                                     b = j1 - j_x_l * w_stride
                                     if 0 <= a < h_ker and 0 <= b < w_ker:
                                         total_res[b_ind][i][i1 - h_pad][j1 - w_pad] += cur_grad[i_x_l][j_x_l] * \
-                                                                                       self.weights.value[j][i][a][b]
+                                                                                       self.weights.data[j][i][a][b]
         return total_res
 
     def parameters(self):
@@ -123,8 +123,8 @@ class FastConv2d(Module):
         self.dilation = _pair(dilation)
 
         # in TORCH: OUT x IN x H * W
-        self.weights = Variable(np.random.random((out_channels, in_channels, *self.kernel_size)).astype(dtype) * 0.1)
-        self.biases = Variable(np.random.random(out_channels).astype(dtype) * 0.01)
+        self.weight = Variable(np.random.random((out_channels, in_channels, *self.kernel_size)).astype(dtype) * 0.1)
+        self.bias = Variable(np.random.random(out_channels).astype(dtype) * 0.01)
 
     def forward(self, x):
         h_pad, w_pad = self.padding
@@ -141,9 +141,9 @@ class FastConv2d(Module):
         self.i = i
         self.j = j
         self.k = k
-        convolve = self.weights.value[None, :, :, None, :, :] * patches[:, None]
+        convolve = self.weight.data[None, :, :, None, :, :] * patches[:, None]
         res = convolve.sum(axis=(2, -1, -2)).reshape(-1, self.out_channels, h_out, w_out)
-        res = res + self.biases.value[None, :, None, None]
+        res = res + self.bias.data[None, :, None, None]
         return res
 
     def backward(self, grad):
@@ -151,15 +151,15 @@ class FastConv2d(Module):
         h_pad, w_pad = self.padding
         h_ker, w_ker = self.kernel_size
 
-        self.biases.grad += grad.mean(axis=0).sum(axis=(-2, -1))
+        self.bias.grad += grad.mean(axis=0).sum(axis=(-2, -1))
 
         in_c, out_h, out_w = self.padded_img_shape
 
         dw = grad[:, :, None, :, :, None, None] * self.select_img.reshape(bz, 1, in_c, H, W, h_ker, w_ker)
-        self.weights.grad = dw.sum(axis=(0, 3, 4)) / bz
+        self.weight.grad = dw.sum(axis=(0, 3, 4)) / bz
 
-        X = grad[:, :, None, :, :, None, None] * self.weights.value.reshape(1, self.out_channels, in_c,
-                                                                            1, 1, h_ker, w_ker)
+        X = grad[:, :, None, :, :, None, None] * self.weight.data.reshape(1, self.out_channels, in_c,
+                                                                          1, 1, h_ker, w_ker)
         X = X.sum(axis=1)
 
         padded = np.zeros((bz, in_c, out_h, out_w))  # empty padded array

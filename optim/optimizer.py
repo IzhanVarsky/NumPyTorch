@@ -12,9 +12,9 @@ class Optimizer(ABC):
         for ind, param in enumerate(self.optim_params):
             step = self.get_grad_step(ind, param.grad)
             if self.maximize:
-                param.value += step
+                param.data += step
             else:
-                param.value -= step
+                param.data -= step
         self.iter += 1
 
     @abstractmethod

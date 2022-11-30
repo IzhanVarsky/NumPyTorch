@@ -25,18 +25,18 @@ class TestLinear(unittest.TestCase):
         torch_dtype = torch.float32
         t_input = torch.tensor(input, dtype=torch_dtype, requires_grad=True)
         t_linear = torch.nn.Linear(in_features, out_features, dtype=torch_dtype)
-        t_linear.bias.data = torch.tensor(my_linear.biases.value, requires_grad=True)
-        t_linear.weight.data = torch.tensor(my_linear.weights.value, requires_grad=True)
+        t_linear.bias.data = torch.tensor(my_linear.bias.data, requires_grad=True)
+        t_linear.weight.data = torch.tensor(my_linear.weight.data, requires_grad=True)
         t_out = t_linear(t_input)
         t_out.backward(torch.tensor(grad), retain_graph=True)
 
         assert_allclose(my_out, t_out.detach().numpy(), atol=0.0001,
                         err_msg="---- Forward: test failed :(")
         print("++++ Forward: test passed!")
-        assert_allclose(t_linear.bias.grad.numpy(), my_linear.biases.grad,
+        assert_allclose(t_linear.bias.grad.numpy(), my_linear.bias.grad,
                         atol=0.0001, err_msg="---- Backward: bias grad test failed :(")
         print("++++ Backward: bias grad test passed!")
-        assert_allclose(t_linear.weight.grad.numpy(), my_linear.weights.grad,
+        assert_allclose(t_linear.weight.grad.numpy(), my_linear.weight.grad,
                         atol=0.0001, err_msg="---- Backward: weights grad test failed :(")
         print("++++ Backward: weights grad test passed!")
         assert_allclose(t_input.grad.numpy(), my_grad_out,

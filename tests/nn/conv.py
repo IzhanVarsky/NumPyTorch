@@ -81,8 +81,8 @@ class TestConv(unittest.TestCase):
         t_conv = torch.nn.Conv2d(in_channels, out_channels,
                                  kernel_size=ker, stride=stride, padding=padding,
                                  dilation=dilation, dtype=torch_dtype)
-        t_conv.bias.data = torch.tensor(my_conv1.biases.value)
-        t_conv.weight.data = torch.tensor(my_conv1.weights.value)
+        t_conv.bias.data = torch.tensor(my_conv1.bias.data)
+        t_conv.weight.data = torch.tensor(my_conv1.weight.data)
         t_out = t_conv(torch.tensor(input, dtype=torch_dtype))
 
         t_out_n = t_out.detach().numpy()

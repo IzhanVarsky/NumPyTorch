@@ -38,7 +38,7 @@ class BaseBatchNorm(Module):
         self.xmu = x - mean
         self.sqrtvar = np.sqrt(var + self.eps)
         self.x_norm = self.xmu / self.sqrtvar
-        return self.x_norm * self.gamma.value + self.beta.value
+        return self.x_norm * self.gamma.data + self.beta.data
 
     def backward(self, grad):
         axes = _shape_without_one_axis(grad)
@@ -46,7 +46,7 @@ class BaseBatchNorm(Module):
         N = np.prod(np.delete(grad.shape, 1))
         self.beta.grad += grad.sum(axis=axes, keepdims=True)
         self.gamma.grad += (grad * self.x_norm).sum(axis=axes, keepdims=True)
-        dxhat = grad * self.gamma.value
+        dxhat = grad * self.gamma.data
         divar = (dxhat * self.xmu).sum(axis=axes, keepdims=True)
         dx1 = dxhat / self.sqrtvar - self.xmu * divar / (self.sqrtvar ** 3) / N
         res = dx1 - dx1.sum(axis=axes, keepdims=True) / N

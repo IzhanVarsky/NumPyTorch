@@ -9,17 +9,17 @@ class Dropout(Module):
         if p < 0 or p > 1:
             raise ValueError(f"Dropout probability has to be in range [0, 1], but got {p}")
         self.p = p  # probability of an element to be zeroed
-        self.old_mask = None
+        self.cached_mask = None
 
     def forward(self, x):
         if self.training:
-            self.old_mask = (np.random.rand(*x.shape) > self.p)
-            return self.inverted_dropout(x, self.old_mask)
+            self.cached_mask = (np.random.rand(*x.shape) > self.p)
+            return self.inverted_dropout(x, self.cached_mask)
         return x
 
     def backward(self, grad):
         if self.training:
-            return self.inverted_dropout(grad, self.old_mask)
+            return self.inverted_dropout(grad, self.cached_mask)
         return grad
 
     def inverted_dropout(self, x, mask):
