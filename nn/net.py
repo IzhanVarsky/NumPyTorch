@@ -16,7 +16,7 @@ class Net(Module):
 
     def backward(self):
         grad = self.cost.backward()
-        self.module.backward(grad)
+        return self.module.backward(grad)
 
     def parameters(self):
         return self.module.parameters()

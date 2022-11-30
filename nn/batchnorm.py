@@ -20,8 +20,8 @@ class BaseBatchNorm(Module):
         self.VarX = 1
         self.eps = eps
         self.momentum = momentum
-        self.gamma = Variable(np.ones(used_shape))
-        self.beta = Variable(np.zeros(used_shape))
+        self.bias = Variable(np.zeros(used_shape))  # beta
+        self.weight = Variable(np.ones(used_shape))  # gamma
 
     def forward(self, x):
         axes = _shape_without_one_axis(x)
@@ -38,22 +38,22 @@ class BaseBatchNorm(Module):
         self.xmu = x - mean
         self.sqrtvar = np.sqrt(var + self.eps)
         self.x_norm = self.xmu / self.sqrtvar
-        return self.x_norm * self.gamma.data + self.beta.data
+        return self.x_norm * self.weight.data + self.bias.data
 
     def backward(self, grad):
         axes = _shape_without_one_axis(grad)
 
         N = np.prod(np.delete(grad.shape, 1))
-        self.beta.grad += grad.sum(axis=axes, keepdims=True)
-        self.gamma.grad += (grad * self.x_norm).sum(axis=axes, keepdims=True)
-        dxhat = grad * self.gamma.data
+        self.bias.grad += grad.sum(axis=axes, keepdims=True)
+        self.weight.grad += (grad * self.x_norm).sum(axis=axes, keepdims=True)
+        dxhat = grad * self.weight.data
         divar = (dxhat * self.xmu).sum(axis=axes, keepdims=True)
         dx1 = dxhat / self.sqrtvar - self.xmu * divar / (self.sqrtvar ** 3) / N
         res = dx1 - dx1.sum(axis=axes, keepdims=True) / N
         return res
 
     def parameters(self):
-        return [self.gamma, self.beta]
+        return [self.weight, self.bias]
 
 
 class BatchNorm1d(BaseBatchNorm):

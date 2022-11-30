@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 
 from .module import Module
@@ -46,13 +48,23 @@ class Tanh(Module):
 
 
 class Softmax(Module):
-    def __init__(self):
+    def __init__(self, dim: Optional[int] = None):
         super(Softmax, self).__init__()
+        self.dim = dim
         self.cached_y = None
 
     def forward(self, x):
-        self.cached_y = np.exp(x) / np.exp(x).sum(axis=1)[:, None]
+        axis = self.get_dim(x.ndim)
+        self.cached_y = np.exp(x) / np.exp(x).sum(axis=axis, keepdims=True)
         return self.cached_y
 
     def backward(self, grad):
-        return self.cached_y * (grad - (grad * self.cached_y).sum(axis=1)[:, None])
+        axis = self.get_dim(grad.ndim)
+        return self.cached_y * (grad - (grad * self.cached_y).sum(axis=axis, keepdims=True))
+
+    def get_dim(self, ndim):
+        if self.dim is not None:
+            return self.dim
+        if ndim in [0, 1, 3]:
+            return 0
+        return 1

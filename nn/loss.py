@@ -21,7 +21,7 @@ class CrossEntropyLoss(Loss):
         return -(target * np.log(self.cached_input)).sum(axis=1)
 
     def backward(self):
-        return -self.cached_target / self.cached_input
+        return -self.cached_target / self.cached_input / self.cached_input.shape[0]
 
 
 class MSELoss(Loss):
@@ -36,4 +36,4 @@ class MSELoss(Loss):
         return ((target - x) ** 2).mean(axis=1)
 
     def backward(self):
-        return self.cached_input - self.cached_target
+        return 2 * (self.cached_input - self.cached_target) / np.prod(self.cached_input.shape)
