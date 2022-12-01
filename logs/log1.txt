@@ -1,0 +1,82 @@
+  0%|          | 0/937 [00:00<?, ?it/s]Start training...
+--- Epoch 1/10
+100%|██████████| 937/937 [14:13<00:00,  1.10it/s]
+Phase Train. Loss: 0.33463903851843974. Accuracy: 0.9018643276414088
+100%|██████████| 156/156 [00:03<00:00, 48.09it/s]
+  0%|          | 0/937 [00:00<?, ?it/s]Phase Test. Loss: 0.23208071752115372. Accuracy: 0.9307892628205128
+--- Epoch 2/10
+100%|██████████| 937/937 [14:16<00:00,  1.09it/s]
+  0%|          | 0/156 [00:00<?, ?it/s]Phase Train. Loss: 0.20914621207699194. Accuracy: 0.940284818569904
+100%|██████████| 156/156 [00:03<00:00, 41.49it/s]
+Phase Test. Loss: 0.1767920518889026. Accuracy: 0.9479166666666666
+--- Epoch 3/10
+100%|██████████| 937/937 [16:11<00:00,  1.04s/it]
+  0%|          | 0/156 [00:00<?, ?it/s]Phase Train. Loss: 0.1605360367904509. Accuracy: 0.9535752401280683
+100%|██████████| 156/156 [00:04<00:00, 33.66it/s]
+Phase Test. Loss: 0.14590810386500608. Accuracy: 0.9568309294871795
+--- Epoch 4/10
+100%|██████████| 937/937 [17:25<00:00,  1.12s/it]
+Phase Train. Loss: 0.1262913702004729. Accuracy: 0.9644143543223053
+100%|██████████| 156/156 [00:03<00:00, 43.94it/s]
+  0%|          | 0/937 [00:00<?, ?it/s]Phase Test. Loss: 0.12962101485352392. Accuracy: 0.9604366987179487
+--- Epoch 5/10
+100%|██████████| 937/937 [13:58<00:00,  1.12it/s]
+Phase Train. Loss: 0.09806696789970865. Accuracy: 0.9732190501600854
+100%|██████████| 156/156 [00:03<00:00, 43.58it/s]
+Phase Test. Loss: 0.12210348613760157. Accuracy: 0.9641426282051282
+--- Epoch 6/10
+100%|██████████| 937/937 [13:01<00:00,  1.20it/s]
+  0%|          | 0/156 [00:00<?, ?it/s]Phase Train. Loss: 0.07102703818595153. Accuracy: 0.9822238527214514
+100%|██████████| 156/156 [00:04<00:00, 34.46it/s]
+Phase Test. Loss: 0.12435602446477836. Accuracy: 0.9615384615384616
+--- Epoch 7/10
+100%|██████████| 937/937 [15:39<00:00,  1.00s/it]
+Phase Train. Loss: 0.046053195755838945. Accuracy: 0.9904782550693704
+100%|██████████| 156/156 [00:03<00:00, 40.92it/s]
+  0%|          | 0/937 [00:00<?, ?it/s]Phase Test. Loss: 0.12974042412682404. Accuracy: 0.9596354166666666
+--- Epoch 8/10
+ 66%|██████▌   | 619/937 [10:05<05:11,  1.02it/s]
+Traceback (most recent call last):
+  File "F:\1_sem\only-numpy-ml-framework\main.py", line 68, in <module>
+    main()
+  File "F:\1_sem\only-numpy-ml-framework\main.py", line 64, in main
+    train(net, lr=0.001, nb_epoch=10, loaders=loaders)
+  File "F:\1_sem\only-numpy-ml-framework\main.py", line 35, in train
+    model.backward()
+  File "F:\1_sem\only-numpy-ml-framework\nn\net.py", line 19, in backward
+    return self.module.backward(grad)
+  File "F:\1_sem\only-numpy-ml-framework\nn\container.py", line 16, in backward
+    grad = self.layers[i].backward(grad)
+  File "F:\1_sem\only-numpy-ml-framework\nn\conv.py", line 60, in backward
+    self.weight.grad += dw.sum(axis=(0, 3, 4))
+  File "F:\1_sem\only-numpy-ml-framework\win_venv\lib\site-packages\numpy\core\_methods.py", line 48, in _sum
+    return umr_sum(a, axis, dtype, out, keepdims, initial, where)
+KeyboardInterrupt
+
+Process finished with exit code -1073741510 (0xC000013A: interrupted by Ctrl+C)
+
+
+=================================================
+
+ker = 3
+pad = 1
+out_chan = 4
+stride = 1
+net = nn.Net(nn.Sequential(
+    # nn.Conv2d(in_channels=1, out_channels=out_chan, kernel_size=ker, padding=pad, stride=stride),
+    nn.Conv2d(in_channels=1, out_channels=out_chan * 4, kernel_size=ker, padding=pad, stride=stride),
+    # nn.Conv2d(in_channels=out_chan * 4, out_channels=out_chan * 16, kernel_size=ker, padding=pad, stride=stride),
+    # nn.MaxPool2d(kernel_size=ker, padding=pad, stride=stride),
+    # nn.BatchNorm2d(out_chan),
+    nn.Flatten(),
+    nn.Linear(((28 + 2 * pad - ker) // stride + 1) ** 2 * out_chan * 4, 128),
+    # nn.Linear(((28 + 2 * pad - ker) // stride + 1) ** 2, 128),
+    # nn.Linear(28 ** 2, 128),
+    # nn.Dropout(),
+    nn.BatchNorm1d(128),
+    nn.Tanh(),
+    nn.Linear(128, 10),
+    nn.Softmax()
+), nn.CrossEntropyLoss())
+loaders = get_mnist_loaders(batch_size=64)
+train(net, lr=0.001, nb_epoch=10, loaders=loaders)
