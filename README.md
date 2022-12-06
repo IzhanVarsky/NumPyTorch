@@ -190,7 +190,7 @@ dLoss/dX = y * (grad - sum(grad * y))
 * `backward`:
 
 1. `dLoss/db = dLoss/dy * dy/db = grad`
-2. `dLoss/dW = dLoss/dy * dy/dW = (x - mean(x)) / sqrt(var(x) + eps)`
+2. `dLoss/dW = dLoss/dy * dy/dW = grad * (x - mean(x)) / sqrt(var(x) + eps)`
 3. `dLoss/dX`: доступно и пошагово
    объяснено [здесь](https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html)
 
