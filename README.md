@@ -59,9 +59,9 @@
 после каких-то внутренних преобразований получаем выход `predicted`.
 Весь процесс преобразования нашего входа в выход - это функция `forward(x)`.
 
-Поскольку у нас должно происходить обучение, то наша функция `forward` внутри должна содержать/использовать параметры (
-веса), которые мы будем оптимизировать, чтобы выход был более близок к тому выходу, который мы на самом деле ожидаем (
-ground truth).
+Поскольку у нас должно происходить обучение, то наша функция `forward` внутри должна содержать/использовать параметры
+(веса), которые мы будем оптимизировать, чтобы выход был более близок к тому выходу, который мы на самом деле ожидаем
+(ground truth).
 
 Для того чтобы понять, насколько необходимо изменить внутренние веса нейронной сети, нужно посчитать градиенты функции
 потерь по весам нейронной сети (with respect to the weights).
@@ -110,7 +110,7 @@ ground truth).
 Стоит также заметить, что полный градиент по какому-то конкретному параметру вектора `X` считается так:
 `dLoss/dX_j = SUM(dLoss/dy_i * dy_i/dX_j for i in range(n))`.
 При этом если `Y_i` зависит только от `X_i`, а от остальных нет, то `dy_i/dX_j = 0` и тогда формула выливается в:
-`dLoss/dX_j = dLoss/dy_i * dy_i/dX_i`, что в общем случае для вектора `X` дает: `dLoss/dX = dLoss/dy * dy/dX`
+`dLoss/dX_j = dLoss/dy_i * dy_i/dX_i`, что в общем случае для вектора `X` дает: `dLoss/dX = dLoss/dy * dy/dX`.
 
 В целях упрощения `dLoss/dy` я буду просто заменять на `grad` (накопленный градиент).
 
@@ -161,13 +161,13 @@ dLoss/dX = y * (grad - sum(grad * y))
 
 * `forward`: `loss(x, target) = mean((target - x) ** 2)`
 * `backward`: `dLoss/dX = 2 * (x - target)` (в реализации еще производится деление на кол-во элементов, т.к. необходимо
-  накопленный градиент нужно отнормировать по батчу, чтобы при от размера батча не зависело значение градиента)
+  накопленный градиент отнормировать по батчу, чтобы от размера батча не зависело значение градиента)
 
 #### Cross Entropy
 
 * `forward`: `loss(x, target) = -sum(target * log(x))`
 * `backward`: `dLoss/dX = -target / x` (в реализации еще производится деление на кол-во элементов, т.к. необходимо
-  накопленный градиент нужно отнормировать по батчу, чтобы при от размера батча не зависело значение градиента)
+  накопленный градиент отнормировать по батчу, чтобы при размера батча не зависело значение градиента)
 
 #### Dropout
 
@@ -222,6 +222,6 @@ dLoss/dX = y * (grad - sum(grad * y))
 
 * https://github.com/christianversloot/machine-learning-articles/blob/main/batch-normalization-with-pytorch.md
 * https://medium.com/deeplearningmadeeasy/everything-you-wish-to-know-about-batchnorm-6055e07fdce2
-* https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html (
-  очень полезно)
+* https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
+  (очень полезно)
 * https://stackoverflow.com/questions/67968913/derivative-of-batchnorm2d-in-pytorch#comment120333317_67968913
