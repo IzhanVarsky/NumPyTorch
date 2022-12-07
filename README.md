@@ -159,15 +159,13 @@ dLoss/dX = y * (grad - sum(grad * y))
 
 #### MSE
 
-* `forward`: `loss(x, target) = mean((target - x) ** 2)`
-* `backward`: `dLoss/dX = 2 * (x - target)` (в реализации еще производится деление на кол-во элементов, т.к. необходимо
-  накопленный градиент отнормировать по батчу, чтобы от размера батча не зависело значение градиента)
+* `forward`: `loss(x, target) = (target - x) ** 2` (без редукции)
+* `backward`: `dLoss/dX = 2 * (x - target)` ('sum' редукция)
 
 #### Cross Entropy
 
-* `forward`: `loss(x, target) = -sum(target * log(x))`
-* `backward`: `dLoss/dX = -target / x` (в реализации еще производится деление на кол-во элементов, т.к. необходимо
-  накопленный градиент отнормировать по батчу, чтобы при размера батча не зависело значение градиента)
+* `forward`: `loss(x, target) = -sum(target * log(x))` (без редукции)
+* `backward`: `dLoss/dX = -target / x` ('sum' редукция)
 
 #### Dropout
 

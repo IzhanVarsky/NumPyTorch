@@ -60,7 +60,7 @@ class MSELoss(Loss):
     def forward(self, x, target):
         self.cached_input = x
         self.cached_target = target
-        out = ((target - x) ** 2)
+        out = (target - x) ** 2
         if self.reduction == 'mean':
             return out.mean()
         if self.reduction == 'sum':

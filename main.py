@@ -26,9 +26,10 @@ def train(model, lr, nb_epoch, loaders):
             num_inputs = 0
             for (inputs, targets) in tqdm(loaders[phase]):
                 # for (inputs, targets) in loaders[phase]:
-                num_inputs += inputs.shape[0]
+                bz = inputs.shape[0]
+                num_inputs += bz
                 predicted = model(inputs)
-                running_loss += model.loss(predicted, targets).sum()
+                running_loss += model.loss(predicted, targets) * bz
 
                 if phase == "Train":
                     optimizer.zero_grad()
