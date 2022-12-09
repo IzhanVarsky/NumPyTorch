@@ -46,6 +46,10 @@ def get_all_selected_patches(padded_img, ker, stride, dilation, return_i_j=False
     return res
 
 
+def one_hot(targets, classes):
+    return np.eye(classes)[targets.flatten()]
+
+
 def check_selected_patches():
     dilation = (2, 1)
     stride = (1, 1)
